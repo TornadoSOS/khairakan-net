@@ -1,171 +1,189 @@
-from flask import Flask, request, redirect, url_for, session, render_template_string
+from flask import Flask, render_template_string, request, redirect, url_for, session
 import uuid
-import os
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_khairakan_dark_net_2026'
+app.secret_key = 'super_secret_khairakan_easy_2026'
 
-# База данных для школ района и глобальных признавашек
+# Самая простая база данных в памяти
 rooms_data = {
-    'Общий канал района': {'posts': [{'avatar': '', 'text': 'Добро пожаловать в единую темную сеть Улуг-Хемского района!', 'sid': 'system', 'author': 'Система'}], 'messages': [], 'market': []},
-    'СОШ с. Хайыракан': {'posts': [], 'messages': [], 'market': []},
-    'Шагонар — СОШ №1': {'posts': [], 'messages': [], 'market': []},
-    'Шагонар — СОШ №2': {'posts': [], 'messages': [], 'market': []},
-    'Шагонар — СОШ №3': {'posts': [], 'messages': [], 'market': []},
-    'Шагонар — Гимназия': {'posts': [], 'messages': [], 'market': []},
-    'СОШ с. Торгалыг': {'posts': [], 'messages': [], 'market': []},
-    'СОШ с. Арыг-Узю': {'posts': [], 'messages': [], 'market': []},
-    'СОШ с. Ийи-Тал': {'posts': [], 'messages': [], 'market': []}
+    'Общий канал района': [],
+    'Признавашки Улуг-Хем': [],
+    'СОШ с. Хайыракан': [],
+    'Шагонар — СОШ №1': [],
+    'Шагонар — СОШ №2': [],
+    'Шагонар — Гимназия': []
 }
 
-ulug_xem_priznavashki = []
-private_chats = {}
+# Компактный шаблон "Всё в одном" в стиле ночного ТГ
+EASY_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khairakan Dark Net</title>
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+        body { background-color: #17212b; color: #f5f6f7; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .header { background: #242f3d; width: 100%; max-width: 500px; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #101921; position: sticky; top: 0; z-index: 10; }
+        .title { font-weight: 900; color: #5288c1; font-size: 18px; }
+        
+        .menu { background: #242f3d; width: 100%; max-width: 500px; padding: 10px; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #101921; }
+        .menu::-webkit-scrollbar { height: 0px; }
+        .tab-link { background: #17212b; padding: 6px 14px; border-radius: 20px; text-decoration: none; color: #7f91a4; font-size: 13px; font-weight: 700; border: 1px solid #2f3e4e; }
+        .tab-link.active { background: #5288c1; color: white; border-color: #5288c1; }
+        
+        .container { width: 100%; max-width: 500px; padding: 15px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+        .card { background: #242f3d; padding: 14px; border-radius: 14px; border: 1px solid #2f3e4e; display: flex; flex-direction: column; gap: 8px; }
+        
+        textarea, input[type="text"] { width: 100%; padding: 12px; border: 1px solid #2f3e4e; border-radius: 10px; background: #17212b; color: white; font-size: 15px; outline: none; }
+        textarea { height: 70px; resize: none; }
+        input[type="text"]:focus, textarea:focus { border-color: #5288c1; }
+        
+        .btn { background: #5288c1; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+        
+        .msg-box { background: #242f3d; padding: 10px 14px; border-radius: 12px; border: 1px solid #2f3e4e; line-height: 1.4; }
+        .msg-meta { font-size: 12px; color: #5288c1; font-weight: 700; margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .msg-text { font-size: 15px; color: #dfe2e4; font-weight: 500; }
+        
+        .footer { font-size: 11px; color: #5288c1; text-align: center; margin: 20px 0; font-weight: 800; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
 
-def get_template():
-    # Прямое чтение HTML-шаблона, чтобы избежать ошибок путей на Vercel
-    if os.path.exists('index.html'):
-        with open('index.html', 'r', encoding='utf-8') as f:
-            return f.read()
-    return "<h1>Файл index.html не найден на сервере!</h1>"
+    {% if not session.get('username') %}
+    <!-- ПРОСТОЙ ВХОД -->
+    <div class="card" style="margin-top: 20vh; max-width: 360px; width: 100%; text-align: center; padding: 30px 20px;">
+        <h2 style="color: #5288c1; font-weight: 900; margin-bottom: 8px;">KHAIRAKAN NET</h2>
+        <p style="color: #7f91a4; font-size: 13px; margin-bottom: 20px;">Введите ваш никнейм для входа</p>
+        <form action="{{ url_for('login') }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="text" name="username" placeholder="Ваш никнейм" required autocomplete="off">
+            <button type="submit" class="btn">Войти в сеть</button>
+        </form>
+    </div>
+    {% else %}
+    
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div class="header">
+        <div class="title">🕶️ {{ session['username'] }}</div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            {% if session.get('is_admin') %}
+                <span style="color: #e54242; font-size: 11px; font-weight: 800;">[БОГ]</span>
+            {% else %}
+                <span style="color: #2f3e4e; font-size: 10px; cursor: pointer;" onclick="adminLogin()">🔑</span>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" style="color: #7f91a4; text-decoration: none; font-size: 13px; font-weight: 700;">Выйти</a>
+        </div>
+    </div>
+    
+    <!-- СЕЛЕКТОР ВЕТОК И КАНАЛОВ -->
+    <div class="menu">
+        {% for room in rooms %}
+        <a href="{{ url_for('index', room=room) }}" class="tab-link {% if room == current_room %}active{% endif %}">
+            {{ room }}
+        </a>
+        {% endfor %}
+    </div>
+    
+    <div class="container">
+        <!-- ФОРМА ОТПРАВКИ -->
+        <form action="{{ url_for('send') }}" method="POST" class="post-form-card">
+            <input type="hidden" name="room" value="{{ current_room }}">
+            <textarea name="message" placeholder="Напишите анонимное сообщение в {{ current_room }}..." required autocomplete="off"></textarea>
+            <button type="submit" class="btn">Опубликовать в {{ current_room }}</button>
+        </form>
+        
+        <!-- ЛЕНТА СООБЩЕНИЙ -->
+        {% if not messages %}
+            <div style="text-align: center; color: #7f91a4; font-size: 14px; margin-top: 20px; opacity: 0.7;">Здесь пока тихо... Напишите что-нибудь первым!</div>
+        {% endif %}
+        
+        {% for m in messages|reverse %}
+        <div class="msg-box">
+            <div class="msg-meta">
+                <span>{{ m.author }} [ID: {{ m.sid[:6] }}]</span>
+                {% if session.get('is_admin') %}
+                    <a href="{{ url_for('delete_msg', room=current_room, index=messages.index(m)) }}" style="color: #e53e3e; text-decoration: none;">Удалить</a>
+                {% endif %}
+            </div>
+            <div class="msg-text">{{ m.text }}</div>
+        </div>
+        {% endfor %}
+        
+        <div class="footer">ЧАТ ТЫВА ХАЙЫРАКАН</div>
+    </div>
+
+    <script>
+        function adminLogin() {
+            let pass = prompt("Введите секретный ключ админа:");
+            if (pass === "777") {
+                fetch('/admin_auth', { method: 'POST' }).then(() => { window.location.reload(); });
+            } else if (pass !== null) {
+                alert("Неверный ключ!");
+            }
+        }
+    </script>
+    {% endif %}
+
+</body>
+</html>
+"""
+
+@app.route('/')
+def index():
+    current_room = request.args.get('room', 'Общий канал района')
+    if current_room not in rooms_data:
+        current_room = 'Общий канал района'
+    
+    if not session.get('user_sid'):
+        session['user_sid'] = str(uuid.uuid4())
+        
+    return render_template_string(EASY_TEMPLATE, rooms=list(rooms_data.keys()), current_room=current_room, messages=rooms_data[current_room])
 
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username', '').strip()
     if username:
         session['username'] = username
-        session['user_avatar'] = ''
         session['user_sid'] = str(uuid.uuid4())
     return redirect(url_for('index'))
-
-@app.route('/update_profile', methods=['POST'])
-def update_profile():
-    if session.get('user_sid'):
-        session['username'] = request.form.get('username', 'Аноним').strip()
-        session['user_avatar'] = request.form.get('avatar_url', '').strip()
-    return '', 204
 
 @app.route('/admin_auth', methods=['POST'])
 def admin_auth():
     session['is_admin'] = True
     return '', 204
 
-@app.route('/delete_item')
-def delete_item():
+@app.route('/send', methods=['POST'])
+def send():
+    room = request.form.get('room', 'Общий канал района')
+    text = request.form.get('message', '').strip()
+    if text and room in rooms_data:
+        rooms_data[room].append({
+            'text': text,
+            'author': session.get('username', 'Аноним'),
+            'sid': session.get('user_sid', 'unknown')
+        })
+    return redirect(url_for('index', room=room))
+
+@app.route('/delete_msg')
+def delete_msg():
     if session.get('is_admin'):
-        dtype = request.args.get('type')
-        cat = request.args.get('cat')
+        room = request.args.get('room')
         try:
             idx = int(request.args.get('index'))
-            if cat in rooms_data and dtype in rooms_data[cat]:
-                rooms_data[cat][dtype].pop(idx)
+            if room in rooms_data:
+                rooms_data[room].pop(idx)
         except: pass
-    return redirect(url_for('index', branch='schools', cat=request.args.get('cat'), mode=request.args.get('type', 'posts')))
+    return redirect(url_for('index', room=room))
 
-@app.route('/delete_prizn')
-def delete_prizn():
-    if session.get('is_admin'):
-        try:
-            idx = int(request.args.get('index'))
-            ulug_xem_priznavashki.pop(idx)
-        except: pass
-    return redirect(url_for('index', branch='priznavashki'))
-
-@app.route('/open_dm')
-def open_dm():
-    my_sid = session.get('user_sid')
-    target_sid = request.args.get('target_sid')
-    if not my_sid or not target_sid or my_sid == target_sid:
-        return redirect(url_for('index'))
-    pair_key = "-".join(sorted([my_sid, target_sid]))
-    if pair_key not in private_chats:
-        private_chats[pair_key] = []
-    return redirect(url_for('view_dm_chat', pair_key=pair_key, cat=request.args.get('cat', 'Общий канал района')))
-
-@app.route('/view_dm_chat')
-def view_dm_chat():
-    pair_key = request.args.get('pair_key')
-    cat = request.args.get('cat', 'Общий канал района')
-    my_sid = session.get('user_sid')
-    if not pair_key or not my_sid:
-        return redirect(url_for('index', branch='schools', cat=cat, mode='dm'))
-    sids = pair_key.split('-')
-    if my_sid not in sids and not session.get('is_admin'):
-        return redirect(url_for('index', branch='schools', cat=cat, mode='dm'))
-    target_sid = sids if sids == my_sid else sids
-    dm_messages = private_chats.get(pair_key, [])
-    return render_template_string(get_template(), current_branch='schools', current_mode='dm_chat', dm_messages=dm_messages, current_pair_key=pair_key, target_display_id=target_sid[:6], current_cat=cat, categories=list(rooms_data.keys()))
-
-@app.route('/send_private_msg', methods=['POST'])
-def send_private_msg():
-    my_sid = session.get('user_sid')
-    pair_key = request.form.get('pair_key')
-    cat = request.form.get('category', 'Общий канал района')
-    text = request.form.get('message', '').strip()
-    if my_sid and pair_key and text and pair_key in private_chats:
-        private_chats[pair_key].append({'sender': my_sid, 'text': text})
-    return redirect(url_for('view_dm_chat', pair_key=pair_key, cat=cat))
-
-@app.route('/')
-def index():
-    current_branch = request.args.get('branch', 'schools')
-    current_cat = request.args.get('cat', 'Общий канал района')
-    current_mode = request.args.get('mode', 'posts')
-    if current_cat not in rooms_data:
-        current_cat = 'Общий канал района'
-    user_session_id = session.get('user_sid', '')
-    categories_list = list(rooms_data.keys())
-    posts = rooms_data[current_cat]['posts']
-    market = rooms_data[current_cat].get('market', [])
-    raw_messages = rooms_data[current_cat]['messages']
-    messages = []
-    for i, m in enumerate(raw_messages):
-        messages.append({'text': m['text'], 'avatar': m['avatar'], 'author': m.get('author', 'Аноним'), 'sid': m['sid'], 'is_admin_msg': m.get('admin', False), 'is_me': m['sid'] == user_session_id, 'original_index': i})
-    dialogs = []
-    for key in private_chats.keys():
-        sids = key.split('-')
-        if user_session_id in sids:
-            target_sid = sids if sids == user_session_id else sids
-            dialogs.append({'key': key, 'display_id': target_sid[:6]})
-        elif session.get('is_admin'):
-            dialogs.append({'key': key, 'display_id': f"{sids[:4]} ⇄ {sids[:4]}"})
-    return render_template_string(get_template(), current_branch=current_branch, categories=categories_list, current_cat=current_cat, current_mode=current_mode, posts=posts, messages=messages, market=market, dialogs=dialogs, priznavashki=ulug_xem_priznavashki)
-
-@app.route('/add_priznavashki', methods=['POST'])
-def add_priznavashki():
-    text = request.form.get('text', '').strip()
-    user_session_id = session.get('user_sid', '')
-    if text and user_session_id:
-        ulug_xem_priznavashki.append({'text': text, 'sid': user_session_id})
-    return redirect(url_for('index', branch='priznavashki'))
-
-@app.route('/add_post', methods=['POST'])
-def add_post():
-    category = request.form.get('category', 'Общий канал района')
-    text = request.form.get('text', '').strip()
-    user_session_id = session.get('user_sid', '')
-    if text and category in rooms_data:
-        rooms_data[category]['posts'].append({'text': text, 'avatar': session.get('user_avatar', ''), 'author': session.get('username', 'Аноним'), 'sid': user_session_id, 'admin': session.get('is_admin', False)})
-    return redirect(url_for('index', branch='schools', cat=category, mode='posts'))
-
-@app.route('/add_message', methods=['POST'])
-def add_message():
-    category = request.form.get('category', 'Общий канал района')
-    text = request.form.get('message', '').strip()
-    user_session_id = session.get('user_sid', '')
-    if text and category in rooms_data:
-        rooms_data[category]['messages'].append({'text': text, 'avatar': session.get('user_avatar', ''), 'author': session.get('username', 'Аноним'), 'sid': user_session_id, 'admin': session.get('is_admin', False)})
-    return redirect(url_for('index', branch='schools', cat=category, mode='chat'))
-
-@app.route('/add_market', methods=['POST'])
-def add_market():
-    category = request.form.get('category', 'Общий канал района')
-    text = request.form.get('text', '').strip()
-    user_session_id = session.get('user_sid', '')
-    if text and category in rooms_data:
-        if 'market' not in rooms_data[category]:
-            rooms_data[category]['market'] = []
-        rooms_data[category]['market'].append({'text': text, 'avatar': session.get('user_avatar', ''), 'author': session.get('username', 'Аноним'), 'sid': user_session_id, 'admin': session.get('is_admin', False)})
-    return redirect(url_for('index', branch='schools', cat=category, mode='market'))
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
