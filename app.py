@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, request, redirect, url_for, session, render_template_string
 import uuid
+import os
 
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__)
 app.secret_key = 'super_secret_khairakan_dark_net_2026'
 
 # База данных для школ района и глобальных признавашек
@@ -19,6 +20,13 @@ rooms_data = {
 
 ulug_xem_priznavashki = []
 private_chats = {}
+
+def get_template():
+    # Прямое чтение HTML-шаблона, чтобы избежать ошибок путей на Vercel
+    if os.path.exists('index.html'):
+        with open('index.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    return "<h1>Файл index.html не найден на сервере!</h1>"
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -83,9 +91,9 @@ def view_dm_chat():
     sids = pair_key.split('-')
     if my_sid not in sids and not session.get('is_admin'):
         return redirect(url_for('index', branch='schools', cat=cat, mode='dm'))
-    target_sid = sids[1] if sids[0] == my_sid else sids[0]
+    target_sid = sids if sids == my_sid else sids
     dm_messages = private_chats.get(pair_key, [])
-    return render_template('index.html', current_branch='schools', current_mode='dm_chat', dm_messages=dm_messages, current_pair_key=pair_key, target_display_id=target_sid[:6], current_cat=cat, categories=list(rooms_data.keys()))
+    return render_template_string(get_template(), current_branch='schools', current_mode='dm_chat', dm_messages=dm_messages, current_pair_key=pair_key, target_display_id=target_sid[:6], current_cat=cat, categories=list(rooms_data.keys()))
 
 @app.route('/send_private_msg', methods=['POST'])
 def send_private_msg():
@@ -116,11 +124,11 @@ def index():
     for key in private_chats.keys():
         sids = key.split('-')
         if user_session_id in sids:
-            target_sid = sids[1] if sids[0] == user_session_id else sids[0]
+            target_sid = sids if sids == user_session_id else sids
             dialogs.append({'key': key, 'display_id': target_sid[:6]})
         elif session.get('is_admin'):
-            dialogs.append({'key': key, 'display_id': f"{sids[0][:4]} ⇄ {sids[1][:4]}"})
-    return render_template('index.html', current_branch=current_branch, categories=categories_list, current_cat=current_cat, current_mode=current_mode, posts=posts, messages=messages, market=market, dialogs=dialogs, priznavashki=ulug_xem_priznavashki)
+            dialogs.append({'key': key, 'display_id': f"{sids[:4]} ⇄ {sids[:4]}"})
+    return render_template_string(get_template(), current_branch=current_branch, categories=categories_list, current_cat=current_cat, current_mode=current_mode, posts=posts, messages=messages, market=market, dialogs=dialogs, priznavashki=ulug_xem_priznavashki)
 
 @app.route('/add_priznavashki', methods=['POST'])
 def add_priznavashki():
