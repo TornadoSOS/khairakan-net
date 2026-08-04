@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[ KHAIRAKAN // DARK_NET ]</title>
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+        body { background-color: #17212b; color: #f5f6f7; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .header-bar {
+            background: #242f3d; width: 100%; max-width: 550px; padding: 15px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #101921; position: sticky; top: 0; z-index: 10;
+        }
+        .header-title { font-weight: 800; font-size: 18px; color: #5288c1; letter-spacing: 0.5px; }
+        .profile-area { display: flex; align-items: center; gap: 10px; }
+        
+        .avatar-box {
+            width: 42px; height: 42px; border-radius: 50%; background: #5288c1; overflow: hidden;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; color: white; font-weight: 700;
+            border: 2px solid #2f3e4e; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .global-tabs {
+            background: #242f3d; width: 100%; max-width: 550px; padding: 8px 15px 4px;
+            display: flex; gap: 10px; border-bottom: 1px solid #101921;
+        }
+        .g-tab { flex: 1; text-align: center; padding: 8px; font-weight: 800; font-size: 13px; text-decoration: none; color: #7f91a4; border-bottom: 3px solid transparent; }
+        .g-tab.active { color: #5288c1; border-bottom-color: #5288c1; }
+        
+        .class-menu {
+            background: #242f3d; width: 100%; max-width: 550px; padding: 10px 15px 8px;
+            display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #101921;
+        }
+        .class-menu::-webkit-scrollbar { height: 0px; }
+        .class-link {
+            background: #17212b; padding: 6px 14px; border-radius: 20px;
+            text-decoration: none; color: #7f91a4; font-size: 13px; font-weight: 700;
+            transition: all 0.15s ease; border: 1px solid #2f3e4e;
+        }
+        .class-link.active { background: #5288c1; color: #ffffff; border-color: #5288c1; }
+        
+        .mode-switch {
+            background: #242f3d; width: 100%; max-width: 550px; padding: 5px 15px 10px;
+            display: flex; gap: 4px; border-bottom: 1px solid #101921;
+        }
+        .mode-btn {
+            flex: 1; text-align: center; padding: 8px 2px; background: #17212b;
+            border-radius: 12px; text-decoration: none; color: #7f91a4; font-size: 11px; font-weight: 700; border: 1px solid #2f3e4e;
+        }
+        .mode-btn.active { background: #2b5278; color: #ffffff; border-color: #5288c1; }
+        
+        .main-container { width: 100%; max-width: 550px; padding: 15px; display: flex; flex-direction: column; gap: 15px; flex: 1; }
+        .post-form-card { background: #242f3d; padding: 16px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 12px; border: 1px solid #2f3e4e; }
+        textarea { width: 100%; height: 80px; border: 1px solid #2f3e4e; border-radius: 12px; padding: 12px; font-size: 15px; outline: none; resize: none; background: #17212b; color: #f5f6f7; font-weight: 500;}
+        textarea:focus { border-color: #5288c1; }
+        .btn-publish { background: #5288c1; color: white; border: none; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+        
+        .post-card { background: #242f3d; padding: 16px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; gap: 12px; border: 1px solid #2f3e4e; }
+        .post-avatar { width: 38px; height: 38px; border-radius: 50%; background: #2b5278; overflow: hidden; display: flex; justify-content: center; align-items: center; color: white; font-size: 11px; font-weight: 700; flex-shrink: 0; border: 1px solid #5288c1; }
+        .post-content { flex: 1; }
+        .post-meta { font-size: 13px; font-weight: 700; color: #5288c1; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
+        .post-text { font-size: 15px; line-height: 1.45; color: #dfe2e4; word-break: break-word; font-weight: 500; }
+        
+        .chat-box { background: #0e1621; border-radius: 18px; min-height: 430px; max-height: 60vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid #2f3e4e; }
+        .msg-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg-row { display: flex; gap: 8px; align-items: flex-end; max-width: 85%; }
+        .msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
+        .bubble { background: #182533; padding: 8px 14px 7px; border-radius: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid #202b36; }
+        .msg-row.me .bubble { background: #2b5278; border-color: #3b6288; }
+        .bubble-author { font-size: 12px; font-weight: 700; color: #5288c1; margin-bottom: 2px; display: flex; gap: 8px; justify-content: space-between; }
+        
+        .chat-input-bar { background: #242f3d; padding: 10px; display: flex; gap: 8px; border-top: 1px solid #101921; }
+        .chat-input { flex: 1; padding: 10px 14px; border: 1px solid #2f3e4e; border-radius: 10px; outline: none; font-size: 15px; background: #17212b; color: white; font-weight: 500; }
+        .btn-send { background: #5288c1; color: white; border: none; padding: 0 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        
+        .dialog-item { background: #242f3d; padding: 14px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: inherit; border: 1px solid #2f3e4e; font-weight: 600; }
+        .dialog-btn-go { background: #5288c1; color: white; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+        .btn-dm { background: #182533; color: #5288c1; border: 1px solid #2f3e4e; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .login-card { background: #242f3d; width: 100%; max-width: 380px; padding: 40px 25px 30px; border-radius: 20px; text-align: center; border: 1px solid #2f3e4e; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .login-card input[type="text"] { width: 100%; padding: 14px 18px; border: 1px solid #2f3e4e; border-radius: 12px; font-size: 16px; outline: none; background: #17212b; color: white; font-weight: 600; margin-bottom: 15px; text-align: center;}
+        .footer-brand { font-size: 11px; color: #5288c1; text-align: center; margin: 20px 0; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+    {% if not session.get('user_sid') %}
+    <!-- ЭКРАН ВХОДА -->
+    <div class="login-card" style="margin-top: 15vh;">
+        <div style="font-size: 50px; margin-bottom: 15px;">🕶️</div>
+        <h1 style="font-size: 24px; color: #5288c1; margin-bottom: 10px; font-weight: 900;">KHAIRAKAN DARK NET</h1>
+        <p style="color: #7f91a4; font-size: 14px; margin-bottom: 25px;">Придумайте ваш уникальный псевдоним для входа в анонимную сеть района.</p>
+        <form action="{{ url_for('login') }}" method="POST">
+            <input type="text" name="username" placeholder="Ваш никнейм" required autocomplete="off">
+            <button type="submit" class="btn-publish" style="width: 100%;">Войти в сеть</button>
+        </form>
+        <div style="margin-top: 30px; font-size: 11px; color: #5288c1; font-weight: 800; letter-spacing: 1px;">ЧАТ ТЫВА ХАЙЫРАКАН</div>
+    </div>
+    {% else %}
+    
+    <!-- ГЛАВНЫЙ ИНТЕРФЕЙС -->
+    <div class="header-bar">
+        <div class="profile-area">
+            <div class="avatar-box" title="Ваша аватарка">
+                {% if session.get('user_avatar') %}
+                    <img src="{{ session['user_avatar'] }}" class="avatar-img" alt="av">
+                {% else %}
+                    {{ session['username'][:2].upper() }}
+                {% endif %}
+            </div>
+            <div>
+                <div class="header-title">{{ session['username'] }}</div>
+                <div style="color: #7f91a4; font-size: 12px; font-weight: 600;">ID: {{ session['user_sid'][:6] }}</div>
+            </div>
+        </div>
+        <div style="font-size: 20px; cursor: pointer;" onclick="openSettings()" title="Настройки профиля">⚙️</div>
+    </div>
+    
+    <!-- ГЛОБАЛЬНЫЕ ВЕТКИ -->
+    <div class="global-tabs">
+        <a href="{{ url_for('index', branch='schools', cat=current_cat, mode=current_mode) }}" class="g-tab {% if current_branch == 'schools' %}active{% endif %}">🏫 Школы района</a>
+        <a href="{{ url_for('index', branch='priznavashki') }}" class="g-tab {% if current_branch == 'priznavashki' %}active{% endif %}">🔥 Признавашки Улуг-Хем</a>
+    </div>
+    
+    {% if current_branch == 'schools' and current_mode != 'dm' and current_mode != 'dm_chat' %}
+    <!-- СЕЛЕКТОР ШКОЛ -->
+    <div class="class-menu">
+        {% for cat in categories %}
+        <a href="{{ url_for('index', branch='schools', cat=cat, mode=current_mode) }}" class="class-link {% if cat == current_cat %}active{% endif %}">
+            {{ cat }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if current_branch == 'schools' %}
+    <!-- ВКЛАДКИ -->
+    <div class="mode-switch">
+        <a href="{{ url_for('index', branch='schools', cat=current_cat, mode='posts') }}" class="mode-btn {% if current_mode == 'posts' %}active{% endif %}">📢 Стенгазета</a>
+        <a href="{{ url_for('index', branch='schools', cat=current_cat, mode='chat') }}" class="mode-btn {% if current_mode == 'chat' %}active{% endif %}">💬 Живой Чат</a>
+        <a href="{{ url_for('index', branch='schools', cat=current_cat, mode='market') }}" class="mode-btn {% if current_mode == 'market' %}active{% endif %}">🛍️ Шпаргалки / Реклама</a>
+        <a href="{{ url_for('index', branch='schools', cat=current_cat, mode='dm') }}" class="mode-btn {% if current_mode == 'dm' or current_mode == 'dm_chat' %}active{% endif %}">✉️ Личные</a>
+    </div>
+    {% endif %}
+    
+    <!-- Кнопка Супер-Админа -->
+    <div style="text-align: center; margin-top: 6px;">
+        {% if not session.get('is_admin') %}
+            <span style="color: #2f3e4e; font-size: 10px; cursor: pointer;" onclick="adminLogin()">🔑 Админ</span>
+        {% else %}
+            <span style="color: #e54242; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">⚡ РЕЖИМ БОГА АКТИВИРОВАН</span>
+        {% endif %}
+    </div>
+    
+    <div class="main-container">
+        
+        {% if current_branch == 'priznavashki' %}
+        <!-- ПРИЗНАВАШКИ -->
+        <form action="{{ url_for('add_priznavashki') }}" method="POST" class="post-form-card">
+            <textarea name="text" placeholder="Слейте анонимный слух на весь район..." required autocomplete="off"></textarea>
+            <button type="submit" class="btn-publish">Опубликовать анонимно</button>
+        </form>
+        
+        {% for p in priznavashki|reverse %}
+        <div class="post-card" style="border-left: 4px solid #e54242;">
+            <div class="post-avatar" style="background: #e54242; border-color: #e54242;">🔥</div>
+            <div class="post-content">
+                <div class="post-meta">
+                    <span style="color: #e54242;">Признавашки Улуг-Хем • ID: {{ p.sid[:6] }}</span>
+                    <div>
+                        {% if p.sid != session.get('user_sid') %}
+                            <a href="{{ url_for('open_dm', target_sid=p.sid) }}" class="btn-dm">💬 ЛС</a>
+                        {% endif %}
+                        {% if session.get('is_admin') %}
+                            <a href="{{ url_for('delete_prizn', index=priznavashki.index(p)) }}" style="color:#e53e3e; text-decoration:none; margin-left:10px;">❌</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="post-text">{{ p.text }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% elif current_mode == 'posts' %}
+        <!-- СТЕНГАЗЕТА -->
+        <form action="{{ url_for('add_post') }}" method="POST" class="post-form-card">
+            <input type="hidden" name="category" value="{{ current_cat }}">
+            <textarea name="text" placeholder="Напишите анонимную сплетню в {{ current_cat }}..." required autocomplete="off"></textarea>
+            <button type="submit" class="btn-publish">Слить анонимно</button>
+        </form>
+        
+        {% for post in posts|reverse %}
+        <div class="post-card">
+            <div class="post-avatar">
+                <img src="{{ post.avatar if post.avatar else '' }}" class="avatar-img" onerror="this.style.display='none'">
+                {% if not post.avatar %}{{ post.author[:2].upper() }}{% endif %}
+            </div>
+            <div class="post-content">
+                <div class="post-meta">
+                    <div>
+                        {% if post.admin %}<span style="background:#e54242; color:white; padding:2px 6px; border-radius:6px; font-size:10px; margin-right:5px;">[ADMIN]</span>{% endif %}
+                        {{ post.author }} • ID: {{ post.sid[:6] }}
+                    </div>
+                    <div>
+                        {% if post.sid != session.get('user_sid') and post.sid != 'system' %}
+                            <a href="{{ url_for('open_dm', target_sid=post.sid) }}" class="btn-dm">💬 ЛС</a>
+                        {% endif %}
+                        {% if session.get('is_admin') %}
+                            <a href="{{ url_for('delete_item', type='posts', cat=current_cat, index=posts.index(post)) }}" style="color:#e53e3e; text-decoration:none; margin-left:10px;">❌</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="post-text">{{ post.text }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% elif current_mode == 'chat' %}
+        <!-- ЧАТ -->
+        <div class="chat-box">
+            <div class="msg-area">
+                {% for m in messages %}
+                <div class="msg-row {% if m.is_me %}me{% endif %}">
+                    <div class="post-avatar" style="width:30px; height:30px;">
+                        <img src="{{ m.avatar if m.avatar else '' }}" class="avatar-img" onerror="this.style.display='none'">
+                        {% if not m.avatar %}?{% endif %}
+                    </div>
+                    <div class="bubble">
+                        <div class="bubble-author">
+                            <span>{{ m.author }} [ID: {{ m.sid[:6] }}]</span>
+                            <div>
+                                {% if m.sid != session.get('user_sid') %}
+                                    <a href="{{ url_for('open_dm', target_sid=m.sid) }}" class="btn-dm" style="font-size:9px; padding:1px 4px;">ЛС</a>
+                                {% endif %}
+                                {% if session.get('is_admin') %}
+                                    <a href="{{ url_for('delete_item', type='messages', cat=current_cat, index=m.original_index) }}" style="color:#e53e3e; text-decoration:none; margin-left:5px;">❌</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="post-text" style="font-size:14px;">{{ m.text }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <form action="{{ url_for('add_message') }}" method="POST" class="chat-input-bar">
+                <input type="hidden" name="category" value="{{ current_cat }}">
+                <input type="text" name="message" class="chat-input" placeholder="Написать в чат..." required autocomplete="off">
+                <button type="submit" class="btn-send">Отправить</button>
+            </form>
+        </div>
+        
+        {% elif current_mode == 'market' %}
+        <!-- МАРКЕТ -->
+        <form action="{{ url_for('add_market') }}" method="POST" class="post-form-card">
+            <input type="hidden" name="category" value="{{ current_cat }}">
+            <textarea name="text" placeholder="Выложите шпаргалку или объявление в {{ current_cat }}..." required autocomplete="off"></textarea>
+            <button type="submit" class="btn-publish">Опубликовать</button>
+        </form>
+        
+        {% for item in market|reverse %}
+        <div class="post-card" style="border-left: 4px solid #5288c1;">
+            <div class="post-avatar"> {% elif current_mode == 'dm' %}
+        <h3 style="font-size:15px; color:#7f91a4; margin-bottom:5px;">Ваши зашифрованные диалоги:</h3>
+        {% if not dialogs %}
+            <div style="text-align:center; color:#7f91a4; margin-top:20px; font-size:14px; opacity:0.7;">Здесь пусто. Нажмите кнопку "💬 ЛС" на любом посте района, чтобы начать секретную переписку.</div>
+        {% endif %}
+        {% for d in dialogs %}
+        <a href="{{ url_for('view_dm_chat', pair_key=d.key, cat=current_cat) }}" class="dialog-item">
+            <div>✉️ Собеседник [ID: {{ d.display_id }}]</div>
+            <div class="dialog-btn-go">Открыть чат</div>
+        </a>
+        {% endfor %}
+        
+        {% elif current_mode == 'dm_chat' %}
+        <div class="chat-box">
+            <div class="chat-input-bar" style="border-bottom:1px solid #101921; justify-content:space-between; font-weight:700;">
+                <span style="color:#5288c1;">🔒 Приватный диалог с ID: {{ target_display_id }}</span>
+                <a href="{{ url_for('index', branch='schools', cat=current_cat, mode='dm') }}" style="color:#7f91a4; text-decoration:none; font-size:14px;">Назад</a>
+            </div>
+            <div class="msg-area">
+                {% for m in dm_messages %}
+                <div class="msg-row {% if m.sender == session.get('user_sid') %}me{% endif %}">
+                    <div class="bubble">
+                        <div class="post-text" style="font-size:14px;">{{ m.text }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <form action="{{ url_for('send_private_msg') }}" method="POST" class="chat-input-bar">
+                <input type="hidden" name="pair_key" value="{{ current_pair_key }}">
+                <input type="hidden" name="category" value="{{ current_cat }}">
+                <input type="text" name="message" class="chat-input" placeholder="Секретное сообщение..." required autocomplete="off">
+                <button type="submit" class="btn-send">Отправить</button>
+            </form>
+        </div>
+        {% endif %}
+        
+        <div class="footer-brand">KHAIRAKAN // DARK_NET</div>
+    </div>
+
+    <script>
+        function openSettings() {
+            let newNick = prompt("Введите новый никнейм:", "{{ session.get('username') }}");
+            if (newNick !== null && newNick.trim() !== "") {
+                let newAva = prompt("Вставьте прямую ссылку на картинку для аватарки из интернета (или оставьте пустым):", "{{ session.get('user_avatar', '') }}");
+                fetch('/update_profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'username=' + encodeURIComponent(newNick) + '&avatar_url=' + encodeURIComponent(newAva || '')
+                }).then(() => { window.location.reload(); });
+            }
+        }
+        function adminLogin() {
+            let pass = prompt("Введите секретный ключ администратора:");
+            if (pass === "777") {
+                fetch('/admin_auth', { method: 'POST' }).then(() => { window.location.reload(); });
+            } else if(pass !== null) {
+                alert("Неверный ключ доступа!");
+            }
+        }
+        const msgArea = document.querySelector('.msg-area');
+        if(msgArea) { msgArea.scrollTop = msgArea.scrollHeight; }
+    </script>
+</body>
+        </html>
